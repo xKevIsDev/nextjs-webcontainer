@@ -1,6 +1,6 @@
 # Next.js WebContainer using webcontainer from StackBlitz
 
-## 🚀 Live Demo: [Next.js WebContainer]([https://your-demo-url.com](https://nextjs-webcontainer-g3r2x8d46-zennerd404s-projects.vercel.app/))
+## 🚀 Live Demo: [Next.js WebContainer](https://nextjs-webcontainer-g3r2x8d46-zennerd404s-projects.vercel.app/)
 
 Welcome to the Next.js WebContainer! This project demonstrates the power of WebContainers by providing an interactive, in-browser development environment for Next.js applications.
 
