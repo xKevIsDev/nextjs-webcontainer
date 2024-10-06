@@ -61,7 +61,7 @@ This project is [MIT](https://choosealicense.com/licenses/mit/) licensed.
 
 [@KevIsDev](https://twitter.com/KevIsDev)
 
-Project Link: [https://github.com/xKevIsDev/nextjs-webcontainer-playground](https://github.com/KevIsDev/nextjs-webcontainer)
+Project Link: [https://github.com/KevIsDev/nextjs-webcontainer]
 
 ---
 
