@@ -13,7 +13,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable"
-import { Code, Play, TerminalIcon, ChevronDown, ChevronUp, Sun, Moon, Loader, AlertCircle } from 'lucide-react'
+import { Code, Play, TerminalIcon, Sun, Moon, } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { WebContainerLoader } from '@/components/container/loader'
 

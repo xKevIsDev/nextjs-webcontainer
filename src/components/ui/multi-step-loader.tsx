@@ -1,8 +1,6 @@
 "use client";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { CircleCheck } from "lucide-react";
-import { useState, useEffect } from "react";
 
 const CheckIcon = ({ className }: { className?: string }) => {
   return (
