@@ -61,7 +61,7 @@ export default function Container() {
     <div className={`flex flex-col h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-800'} transition-colors duration-300`}>
       <header className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} shadow-sm p-4 flex w-full justify-between items-center transition-colors duration-300`}>
         <h1 className="text-2xl font-bold">
-          Next.js WebContainer Example
+          NextJS WebContainer Example
         </h1>
         <div className="flex flex-col items-center">
           <div className="flex items-center">
