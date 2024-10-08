@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { files } from '@/components/container/files'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -9,10 +9,12 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable"
-import { Code, Play, TerminalIcon, Sun, Moon } from 'lucide-react'
+import { Code, Play, TerminalIcon, Sun, Moon, Github, Twitter } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { WebContainerLoader } from '@/components/container/loader'
 import dynamic from 'next/dynamic'
+import { WebContainer } from '@webcontainer/api'
+import { FileExplorer } from './file-explorer'
 
 const DynamicWebContainer = dynamic(() => import('./dynamic-web-container'), { ssr: false })
 
@@ -24,6 +26,8 @@ export default function Container() {
   const terminalRef = useRef<HTMLDivElement>(null)
   const [isDarkMode, setIsDarkMode] = useState(true)
   const [loadingState, setLoadingState] = useState<LoadingState>('booting');
+  const [webcontainerInstance, setWebcontainerInstance] = useState<WebContainer | null>(null);
+  const [selectedFile, setSelectedFile] = useState<string>('src/app/page.tsx');
   const hasBooted = useRef(false)
 
   useEffect(() => {
@@ -35,45 +39,75 @@ export default function Container() {
 
       if (!textareaRef.current || !iframeRef.current || !terminalRef.current) return
 
-      const indexContent = (files['pages'] as { directory: { [key: string]: { file: { contents: string } } } })
-        .directory['index.tsx'].file.contents
-      textareaRef.current.value = indexContent
-
-      textareaRef.current.addEventListener("input", handleTextareaInput);
-    }
+      const indexContent = (files.src as { directory: { app: { directory: { [key: string]: { file: { contents: string } } } } } })
+        .directory.app.directory['page.tsx'].file.contents
+        textareaRef.current.value = indexContent
+      }
 
     initializeEnvironment()
   }, [])
 
-  const handleTextareaInput = (e: Event) => {
-    if (e.currentTarget instanceof HTMLTextAreaElement) {
-      // We'll handle this in the DynamicWebContainer component
+
+  const handleFileSelect = useCallback(async (path: string) => {
+    if (webcontainerInstance && textareaRef.current) {
+      const contents = await webcontainerInstance.fs.readFile(path, 'utf-8');
+      textareaRef.current.value = contents;
+      setSelectedFile(path);
+      console.log(path);
     }
-  };
+  }, [webcontainerInstance]);
 
   return (
     <div className={`flex flex-col h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-800'} transition-colors duration-300`}>
       <header className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} shadow-sm p-4 flex w-full justify-between items-center transition-colors duration-300`}>
-        <h1 className="text-2xl font-bold">Next.js WebContainer Example</h1>
-        <div className="flex items-center space-x-4">
-          <span className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} font-extralight`}>by KevIsDev</span>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            className="text-blue-500 hover:text-blue-600 transition-colors duration-300"
-          >
-            {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-          </Button>
+        <h1 className="text-2xl font-bold">
+          Next.js WebContainer Example
+        </h1>
+        <div className="flex flex-col items-center">
+          <div className="flex items-center">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => window.open('https://x.com/KevIsDev', '_blank')}
+              className={` hover:text-blue-600 transition-colors duration-300 ${isDarkMode ? 'text-white' : 'text-black'}`}
+            >
+              <Twitter size={18} />
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className={` hover:text-blue-600 transition-colors duration-300 ${isDarkMode ? 'text-white' : 'text-black'}`}
+            >
+              <Github size={18} />
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className="text-blue-500 hover:text-blue-600 transition-colors duration-300"
+            >
+              {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+            </Button>
+          </div>
         </div>
       </header>
       <main className="flex-grow flex flex-col p-4 space-y-4">
         <ResizablePanelGroup direction="vertical" className="flex-grow rounded-lg overflow-hidden">
           <ResizablePanel defaultSize={75}>
             <ResizablePanelGroup direction="horizontal">
+              <ResizablePanel defaultSize={25}>
+                {webcontainerInstance && (
+                  <FileExplorer
+                    isDarkMode={isDarkMode}
+                    webcontainerInstance={webcontainerInstance}
+                    onFileSelect={handleFileSelect}
+                  />
+                )}
+              </ResizablePanel>
+              <ResizableHandle withHandle />
               <ResizablePanel defaultSize={50}>
                 <motion.div
-                  className={`h-full ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg rounded-br-none shadow-md overflow-hidden transition-colors duration-300`}
+                  className={`h-full ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-none shadow-md overflow-hidden transition-colors duration-300`}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5 }}
@@ -92,7 +126,7 @@ export default function Container() {
               <ResizableHandle withHandle />
               <ResizablePanel defaultSize={50}>
                 <motion.div
-                  className={`h-full ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg rounded-bl-none shadow-md overflow-hidden transition-colors duration-300`}
+                  className={`h-full ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg rounded-bl-none rounded-tl-none shadow-md overflow-hidden transition-colors duration-300`}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.2 }}
@@ -129,6 +163,9 @@ export default function Container() {
         terminalRef={terminalRef}
         isDarkMode={isDarkMode}
         setLoadingState={setLoadingState}
+        selectedFile={selectedFile}
+        webcontainerInstance={webcontainerInstance}
+        setWebcontainerInstance={setWebcontainerInstance}
       />
     </div>
   )

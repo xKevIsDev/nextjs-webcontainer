@@ -15,6 +15,9 @@ interface DynamicWebContainerProps {
   terminalRef: React.RefObject<HTMLDivElement>
   isDarkMode: boolean
   setLoadingState: React.Dispatch<React.SetStateAction<LoadingState>>
+  selectedFile: string
+  webcontainerInstance: WebContainer | null
+  setWebcontainerInstance: (instance: WebContainer | null) => void;
 }
 
 let webcontainerInstance: WebContainer;
@@ -24,7 +27,10 @@ export default function DynamicWebContainer({
   iframeRef,
   terminalRef,
   isDarkMode,
-  setLoadingState
+  setLoadingState,
+  selectedFile,
+  webcontainerInstance,
+  setWebcontainerInstance
 }: DynamicWebContainerProps) {
   const fitAddonRef = useRef<FitAddon | null>(null)
   const terminalInstanceRef = useRef<Terminal | null>(null)
@@ -53,6 +59,7 @@ export default function DynamicWebContainer({
         setLoadingState('booting');
         webcontainerInstance = await WebContainer.boot()
         await webcontainerInstance.mount(files)
+        setWebcontainerInstance(webcontainerInstance)
 
         setLoadingState('installing');
         terminalInstanceRef.current?.writeln('Installing dependencies...')
@@ -67,6 +74,8 @@ export default function DynamicWebContainer({
         let isStarting = false;
         let isCompiling = false;
         let isFirstRequest = false;
+        let isFirstRecompile = true;
+        let compilationStartTime: number | null = null;
 
         serverProcess.output.pipeTo(new WritableStream({
           write(data) {
@@ -77,13 +86,28 @@ export default function DynamicWebContainer({
               setLoadingState('starting');
             }
             
-            if (data.includes('Compiling') && !isCompiling) {
-              isCompiling = true;
-              setLoadingState('compiling');
+            if (data.includes('Compiling')) {
+              if (!isCompiling) {
+                isCompiling = true;
+                compilationStartTime = Date.now();
+                setLoadingState('compiling');
+                terminalInstanceRef.current?.writeln('\r\nCompiling...');
+                
+                if (isFirstRecompile) {
+                  terminalInstanceRef.current?.writeln('First recompilation might take longer...');
+                  isFirstRecompile = false;
+                }
+              }
             }
             
-            if (data.includes('Compiled') && isCompiling) {
-              isCompiling = false;
+            if (data.includes('Compiled')) {
+              if (isCompiling && compilationStartTime) {
+                const compilationTime = Date.now() - compilationStartTime;
+                isCompiling = false;
+                setLoadingState('ready');
+                terminalInstanceRef.current?.writeln(`\r\nCompiled successfully in ${compilationTime}ms.`);
+                compilationStartTime = null;
+              }
             }
             
             if (data.includes('GET / ') && !isFirstRequest) {
@@ -135,7 +159,7 @@ export default function DynamicWebContainer({
   useEffect(() => {
     const handleTextareaInput = (e: Event) => {
       if (e.currentTarget instanceof HTMLTextAreaElement) {
-        writeIndexTSX(e.currentTarget.value);
+        writeIndexTSX(selectedFile, e.currentTarget.value);
       }
     };
 
@@ -144,7 +168,7 @@ export default function DynamicWebContainer({
     return () => {
       textareaRef.current?.removeEventListener("input", handleTextareaInput);
     };
-  }, [textareaRef]);
+  }, [textareaRef, selectedFile]);
 
   async function installDependencies(terminal: Terminal, instance: WebContainer) {
     const installProcess = await instance.spawn('npm', ['install'])
@@ -195,9 +219,9 @@ export default function DynamicWebContainer({
     return shellProcess
   }
 
-  async function writeIndexTSX(content: string) {
-    await webcontainerInstance?.fs.writeFile("/pages/index.tsx", content);
+  async function writeIndexTSX(selectedFile: string, content: string) {
+    await webcontainerInstance?.fs.writeFile(selectedFile, content);
   }
 
-  return null; // This component doesn't render anything directly
+  return null;
 }

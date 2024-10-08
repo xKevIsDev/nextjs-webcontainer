@@ -67,7 +67,7 @@ const LoaderCore = ({
               {isCompleted ? (
                 <CheckFilled className="fill-gray-400 bor h-6 w-6" />
               ) : isCurrent ? (
-                <CheckFilled className="fill-green-400 text-white-400 h-6 w-6" />
+                <CheckFilled className="fill-green-400 text-white-400 h-6 w-6 animate-pulse" />
               ) : (
                 <CheckIcon className="text-gray-300 h-6 w-6" />
               )}
@@ -76,7 +76,7 @@ const LoaderCore = ({
               className={cn(
                 "text-gray-300 dark:text-gray-300",
                 isCompleted && "text-gray-400",
-                isCurrent && "text-green-400"
+                isCurrent && "text-green-400 animate-pulse"
               )}
             >
               {loadingState.text}
