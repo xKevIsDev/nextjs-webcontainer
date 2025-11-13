@@ -398,9 +398,9 @@ body {
           lint: "next lint"
         },
         dependencies: {
-          "next": "latest",
-          "react": "latest",
-          "react-dom": "latest",
+          "next": "14.2.14",
+          "react": "^18",
+          "react-dom": "^18",
           "lucide-react": "latest",
           "framer-motion": "latest",
           "clsx": "latest",
@@ -412,9 +412,9 @@ body {
           "@types/node": "latest",
           "@types/react": "latest",
           "@types/react-dom": "latest",
-          "autoprefixer": "latest",
-          "postcss": "latest",
-          "tailwindcss": "latest"
+          "autoprefixer": "^10.4.20",
+          "postcss": "^8.4.49",
+          "tailwindcss": "^3.4.1"
         }
       }, null, 2)
     }

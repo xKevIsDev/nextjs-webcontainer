@@ -6,6 +6,7 @@ import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import { files } from '@/components/container/files'
 import '@xterm/xterm/css/xterm.css'
+import { terminalMonitor } from '@/lib/terminal-monitor'
 
 type LoadingState = 'booting' | 'installing' | 'starting' | 'compiling' | 'ready' | 'error';
 
@@ -56,6 +57,11 @@ export default function DynamicWebContainer({
       fitAddonRef.current.fit()
 
       try {
+        // Expose terminal monitor globally
+        if (typeof window !== 'undefined') {
+          (window as any).terminalMonitor = terminalMonitor;
+        }
+
         setLoadingState('booting');
         webcontainerInstance = await WebContainer.boot()
         await webcontainerInstance.mount(files)
@@ -75,13 +81,14 @@ export default function DynamicWebContainer({
         let isCompiling = false;
         let isFirstRequest = false;
         let isFirstRecompile = true;
+        let isServerReady = false;
         let compilationStartTime: number | null = null;
 
         serverProcess.output.pipeTo(new WritableStream({
           write(data) {
             terminalInstanceRef.current?.write(data);
-            
-            if (data.includes('Starting...') && !isStarting) {
+
+            if (data.includes('Starting...') && !isStarting && !isServerReady) {
               isStarting = true;
               setLoadingState('starting');
             }
@@ -118,8 +125,10 @@ export default function DynamicWebContainer({
         }));
 
         webcontainerInstance.on("server-ready", (port, url) => {
+          isServerReady = true;
           terminalInstanceRef.current?.writeln(`Server is ready at ${url}`)
           if (iframeRef.current) iframeRef.current.src = url
+          setLoadingState('ready')
         })
         
         const resizeObserver = new ResizeObserver(() => {
@@ -177,6 +186,10 @@ export default function DynamicWebContainer({
         new WritableStream({
           write(data) {
             terminal.write(data)
+            // Also capture to terminal monitor
+            if (typeof window !== 'undefined' && (window as any).terminalMonitor) {
+              (window as any).terminalMonitor.write(data);
+            }
           },
         })
       )
@@ -207,6 +220,10 @@ export default function DynamicWebContainer({
       new WritableStream({
         write(data) {
           terminal.write(data)
+          // Also capture to terminal monitor
+          if (typeof window !== 'undefined' && (window as any).terminalMonitor) {
+            (window as any).terminalMonitor.write(data);
+          }
         },
       })
     )

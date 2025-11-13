@@ -15,6 +15,7 @@ import { WebContainerLoader } from '@/components/container/loader'
 import dynamic from 'next/dynamic'
 import { WebContainer } from '@webcontainer/api'
 import { FileExplorer } from './file-explorer'
+import { AIChat } from '@/components/chat/ai-chat'
 
 const DynamicWebContainer = dynamic(() => import('./dynamic-web-container'), { ssr: false })
 
@@ -95,7 +96,13 @@ export default function Container() {
         <ResizablePanelGroup direction="vertical" className="flex-grow rounded-lg overflow-hidden">
           <ResizablePanel defaultSize={75}>
             <ResizablePanelGroup direction="horizontal">
-              <ResizablePanel defaultSize={25}>
+              {/* AI Chat Panel */}
+              <ResizablePanel defaultSize={20} minSize={15}>
+                <AIChat webcontainerInstance={webcontainerInstance} />
+              </ResizablePanel>
+              <ResizableHandle withHandle />
+              {/* File Explorer Panel */}
+              <ResizablePanel defaultSize={15} minSize={10}>
                 {webcontainerInstance && (
                   <FileExplorer
                     isDarkMode={isDarkMode}
@@ -105,7 +112,8 @@ export default function Container() {
                 )}
               </ResizablePanel>
               <ResizableHandle withHandle />
-              <ResizablePanel defaultSize={50}>
+              {/* Editor Panel */}
+              <ResizablePanel defaultSize={35} minSize={20}>
                 <motion.div
                   className={`h-full ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-none shadow-md overflow-hidden transition-colors duration-300`}
                   initial={{ opacity: 0, y: 20 }}
@@ -124,7 +132,8 @@ export default function Container() {
                 </motion.div>
               </ResizablePanel>
               <ResizableHandle withHandle />
-              <ResizablePanel defaultSize={50}>
+              {/* Preview Panel */}
+              <ResizablePanel defaultSize={30} minSize={20}>
                 <motion.div
                   className={`h-full ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg rounded-bl-none rounded-tl-none shadow-md overflow-hidden transition-colors duration-300`}
                   initial={{ opacity: 0, y: 20 }}
